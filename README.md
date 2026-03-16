@@ -90,7 +90,7 @@ A 1:1 inspired open-source autonomous AI agent platform, architected to mirror [
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/infinius.git
+git clone https://github.com/JagNL/infinius.git
 cd infinius
 pnpm install
 ```
@@ -244,6 +244,20 @@ Instructions for the agent when this skill is active...
 }
 // Then add a handler in getConnectorHandler()
 ```
+
+---
+
+## Documentation
+
+Full documentation lives in the `/docs` folder:
+
+| Document | What it covers |
+|----------|----------------|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Every system in depth — agent loop, memory, tools, subagents, scheduler, connectors, skills, UI, DB schema, security |
+| [DATA_FLOWS.md](docs/DATA_FLOWS.md) | Step-by-step traces: full agent turn, memory read/write, subagent lifecycle, scheduler lifecycle, OAuth flow |
+| [TOOLS_REFERENCE.md](docs/TOOLS_REFERENCE.md) | Every tool: name, inputs, outputs, backend, when to use |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment on Vercel + Railway/Fly.io + Supabase + Redis, Dockerfile, env var reference |
+| [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, adding tools/skills/connectors, debugging, common issues |
 
 ---
 
