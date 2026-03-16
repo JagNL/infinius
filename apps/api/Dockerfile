@@ -25,7 +25,7 @@ COPY packages/media/package.json ./packages/media/
 COPY apps/api/package.json ./apps/api/
 
 # Install all deps
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source
 COPY packages/ ./packages/
