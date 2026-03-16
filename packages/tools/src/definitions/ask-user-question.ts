@@ -16,7 +16,7 @@
  */
 
 import { createClient } from 'redis';
-import type { RegisteredTool } from '../registry/types.js';
+import type { RegisteredTool } from '@infinius/agent-core';
 
 const INTERRUPT_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes
 

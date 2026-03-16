@@ -12,7 +12,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { RegisteredTool } from '../registry/types.js';
+import type { RegisteredTool } from '@infinius/agent-core';
 
 export const wideBrowseTool: RegisteredTool = {
   name: 'wide_browse',

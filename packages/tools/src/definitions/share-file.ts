@@ -12,7 +12,7 @@
 import { createClient } from '@supabase/supabase-js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { RegisteredTool } from '../registry/types.js';
+import type { RegisteredTool } from '@infinius/agent-core';
 
 export const shareFileTool: RegisteredTool = {
   name: 'share_file',

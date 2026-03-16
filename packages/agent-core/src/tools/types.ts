@@ -21,19 +21,27 @@ export type ToolCategory =
   | 'browser'
   | 'code'
   | 'filesystem'
+  | 'files'
   | 'memory'
   | 'orchestration'
   | 'scheduling'
   | 'connector'
   | 'media'
   | 'document'
-  | 'notification';
+  | 'notification'
+  | 'interaction';
 
 export interface ToolExecuteOptions {
   sessionId: string;
   workspacePath: string;
   userId: string;
   signal?: AbortSignal;
+  /** Emit an SSE event directly to the frontend (used by interrupt tools) */
+  sseEmit?: (event: unknown) => void;
+  /** Web search helper injected by the agent loop (used by wide_research) */
+  searchWeb?: (query: string) => Promise<Array<{ title: string; url: string; content: string }>>;
+  /** Browser task helper injected by the agent loop (used by wide_browse) */
+  browserTask?: (url: string, task: string) => Promise<string>;
 }
 
 export interface ToolResult {
@@ -66,5 +74,5 @@ export type JSONSchemaProperty =
   | { type: 'number'; description?: string }
   | { type: 'integer'; description?: string }
   | { type: 'boolean'; description?: string }
-  | { type: 'array'; items: JSONSchemaProperty; description?: string }
-  | { type: 'object'; properties?: Record<string, JSONSchemaProperty>; description?: string };
+  | { type: 'array'; items: JSONSchemaProperty; description?: string; maxItems?: number; minItems?: number }
+  | { type: 'object'; properties?: Record<string, JSONSchemaProperty>; description?: string; required?: string[]; additionalProperties?: boolean };

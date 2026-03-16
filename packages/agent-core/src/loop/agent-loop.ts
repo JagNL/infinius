@@ -169,12 +169,15 @@ export class AgentLoop {
 
       workingMessages.push({ role: 'assistant', content: response.content });
 
-      // Execute tools, yielding activity events to the UI
+      // Emit tool_activity events before executing (yield must be in the generator, not a callback)
+      for (const tc of response.toolCalls) {
+        yield { type: 'tool_activity' as const, toolName: tc.name, description: tc.name };
+      }
+
+      // Execute all tool calls in parallel
       const toolResults = await Promise.all(
         response.toolCalls.map(async (tc) => {
           const tool = tools.find(t => t.name === tc.name);
-
-          yield { type: 'tool_activity' as const, toolName: tc.name, description: tc.name };
 
           if (!tool) {
             return { toolCallId: tc.id, toolName: tc.name, output: { error: `Unknown tool: ${tc.name}` } };
