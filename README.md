@@ -258,6 +258,8 @@ Full documentation lives in the `/docs` folder:
 | [TOOLS_REFERENCE.md](docs/TOOLS_REFERENCE.md) | Every tool: name, inputs, outputs, backend, when to use |
 | [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Production deployment on Vercel + Railway/Fly.io + Supabase + Redis, Dockerfile, env var reference |
 | [DEVELOPMENT.md](docs/DEVELOPMENT.md) | Local setup, adding tools/skills/connectors, debugging, common issues |
+| [FRONTEND.md](docs/FRONTEND.md) | Full UI architecture — layout, all surfaces, SSE event handling, inline interrupts (ConfirmAction, AskUserQuestion), FileViewer, NotificationsPanel, ConnectorsPage, ScheduledTasksPage, ModelSelector, auth flow, component inventory |
+| [TIERS.md](docs/TIERS.md) | Personal vs Enterprise differences — SSO, org memory, org connectors, audit logging, credit system, admin dashboard, self-hosting, DB schema additions |
 
 ---
 
