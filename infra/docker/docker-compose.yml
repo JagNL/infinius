@@ -1,64 +1,92 @@
 version: '3.9'
 
+# ── Infinius — local development stack ───────────────────────────────────────
+#
+# Services:
+#   api   — Fastify API server (port 3001)
+#   web   — Next.js frontend (port 3000)
+#   redis — BullMQ queues + interrupt pub/sub (port 6379)
+#
+# Prerequisites:
+#   1. Copy .env.example to .env and fill in Supabase credentials
+#   2. pnpm install (to generate pnpm-lock.yaml)
+#   3. docker compose up --build
+#
+# Supabase runs in the cloud (not in compose) — point SUPABASE_URL at your project.
+
 services:
-  # ── Redis (BullMQ job queue + pub/sub) ──────────────────────
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
       - '6379:6379'
     volumes:
-      - redis_data:/data
+      - redis-data:/data
     command: redis-server --appendonly yes
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 3s
+      interval: 10s
+      timeout: 5s
       retries: 5
 
-  # ── API Server ───────────────────────────────────────────────
   api:
     build:
-      context: ../..
+      context: ../../
       dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
     ports:
       - '3001:3001'
     environment:
-      - NODE_ENV=development
-      - REDIS_URL=redis://redis:6379
-    env_file:
-      - ../../.env
+      NODE_ENV: development
+      API_PORT: '3001'
+      # Supabase
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
+      # LLM providers
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      # Search
+      BRAVE_API_KEY: ${BRAVE_API_KEY}
+      TAVILY_API_KEY: ${TAVILY_API_KEY}
+      # Connectors
+      PIPEDREAM_PROJECT_ID: ${PIPEDREAM_PROJECT_ID}
+      PIPEDREAM_PROJECT_SECRET: ${PIPEDREAM_PROJECT_SECRET}
+      # Media (optional)
+      REPLICATE_API_TOKEN: ${REPLICATE_API_TOKEN:-}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # Workspace
+      WORKSPACE_BASE_PATH: /tmp/infinius-workspaces
+      # CORS
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
     depends_on:
       redis:
         condition: service_healthy
     volumes:
-      - workspace_data:/tmp/infinius-workspaces
+      - workspace-data:/tmp/infinius-workspaces
 
-  # ── Web App ──────────────────────────────────────────────────
   web:
     build:
-      context: ../..
+      context: ../../
       dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_API_URL: http://localhost:3001
+    restart: unless-stopped
     ports:
       - '3000:3000'
     environment:
-      - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://localhost:3001
-    env_file:
-      - ../../.env
+      NODE_ENV: production
+      NEXT_PUBLIC_SUPABASE_URL: ${SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+      NEXT_PUBLIC_API_URL: http://api:3001
     depends_on:
       - api
 
-  # ── Bull Board (job queue dashboard) ────────────────────────
-  bull-board:
-    image: deadly0/bull-board
-    ports:
-      - '3002:3000'
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - redis
-
 volumes:
-  redis_data:
-  workspace_data:
+  redis-data:
+  workspace-data:

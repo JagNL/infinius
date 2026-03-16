@@ -1,0 +1,20 @@
+{
+  "name": "@infinius/media",
+  "version": "0.1.0",
+  "description": "Media generation — image (DALL-E/Replicate), TTS (ElevenLabs/OpenAI), transcription (Whisper)",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "openai": "^4.52.0",
+    "@infinius/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "@types/node": "^20.14.0"
+  }
+}
