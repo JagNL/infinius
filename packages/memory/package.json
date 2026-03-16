@@ -1,0 +1,21 @@
+{
+  "name": "@infinius/memory",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "db:migrate": "node dist/migrations/run.js",
+    "db:seed": "node dist/migrations/seed.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.44.0",
+    "openai": "^4.52.0",
+    "zod": "^3.23.0",
+    "@infinius/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}

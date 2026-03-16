@@ -1,0 +1,64 @@
+version: '3.9'
+
+services:
+  # ── Redis (BullMQ job queue + pub/sub) ──────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ── API Server ───────────────────────────────────────────────
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+    env_file:
+      - ../../.env
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - workspace_data:/tmp/infinius-workspaces
+
+  # ── Web App ──────────────────────────────────────────────────
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    env_file:
+      - ../../.env
+    depends_on:
+      - api
+
+  # ── Bull Board (job queue dashboard) ────────────────────────
+  bull-board:
+    image: deadly0/bull-board
+    ports:
+      - '3002:3000'
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:
+  workspace_data:

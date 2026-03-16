@@ -1,0 +1,30 @@
+{
+  "name": "infinius",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Infinius — A 1:1 inspired autonomous AI agent platform modelled on Perplexity Computer",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:migrate": "pnpm --filter @infinius/memory db:migrate",
+    "db:seed": "pnpm --filter @infinius/memory db:seed"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.0",
+    "typescript": "^5.5.0",
+    "@types/node": "^20.14.0",
+    "prettier": "^3.3.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.4.0"
+}

@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+.next
+.turbo
+out
+build
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Workspace sandboxes (ephemeral agent filesystems)
+/tmp/infinius-workspaces
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode
+.idea
+*.swp
+
+# Test coverage
+coverage
+
+# Supabase local
+supabase/.branches
+supabase/.temp
