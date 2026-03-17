@@ -1,7 +1,7 @@
 {
   "name": "@infinius/documents",
   "version": "0.1.0",
-  "description": "Document generation \u2014 DOCX, PPTX, XLSX, PDF",
+  "description": "Document generation — DOCX, PPTX, XLSX, PDF",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -19,5 +19,5 @@
   "devDependencies": {
     "typescript": "^5.5.0",
     "@types/node": "^20.14.0"
-  },
+  }
 }
