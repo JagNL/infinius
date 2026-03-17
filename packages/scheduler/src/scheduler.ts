@@ -19,7 +19,7 @@
  */
 
 import { Queue, Worker, type Job } from 'bullmq';
-import IORedis from 'ioredis';
+import { Redis as IORedis } from 'ioredis';
 import { AgentLoop, ContextBuilder } from '@infinius/agent-core';
 import type { LLMMessage, ModelConfig } from '@infinius/agent-core';
 import { MemoryClient } from '@infinius/memory';
