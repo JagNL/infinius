@@ -55,21 +55,27 @@ const QUEUE_NAME = 'infinius-agent-jobs';
 export class Scheduler {
   private _queue: Queue | null = null;
   private worker: Worker | null = null;
-  private connection: { url: string; maxRetriesPerRequest: null; tls?: object };
+  private connection: Record<string, unknown>;
   private agentLoop = new AgentLoop();
   private contextBuilder = new ContextBuilder();
   private memoryClient = new MemoryClient();
 
   constructor() {
     const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
+    // ioredis (used by BullMQ) handles TLS more reliably with explicit
+    // host/port/password rather than a URL, especially for Upstash rediss://
+    const parsed = new URL(redisUrl);
+    const isTLS = redisUrl.startsWith('rediss://');
     this.connection = {
-      url: redisUrl,
+      host: parsed.hostname,
+      port: parseInt(parsed.port || (isTLS ? '6380' : '6379')),
+      password: parsed.password ? decodeURIComponent(parsed.password) : undefined,
+      username: parsed.username ? decodeURIComponent(parsed.username) : undefined,
       maxRetriesPerRequest: null,
-      // ioredis requires tls option for rediss:// (Upstash TLS)
-      ...(redisUrl.startsWith('rediss://') ? { tls: {} } : {}),
+      ...(isTLS ? { tls: { rejectUnauthorized: false } } : {}),
     };
     // Queue is created lazily to avoid crashing the process when Redis is
-    // not yet available at startup (Railway Redis plugin may take a moment)
+    // not yet available at startup
   }
 
   private get queue(): Queue {
