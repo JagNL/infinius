@@ -38,12 +38,16 @@ import { Scheduler } from '@infinius/scheduler';
 
 process.on('uncaughtException', (err) => {
   console.error('[API] Uncaught exception:', err);
+  // Don't exit on Redis connection errors — Railway Redis may not be ready yet
+  if ((err as NodeJS.ErrnoException).code === 'ECONNREFUSED') return;
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason) => {
+  const msg = String(reason);
+  // Redis connection errors are non-fatal — BullMQ retries automatically
+  if (msg.includes('ECONNREFUSED') || msg.includes('connect')) return;
   console.error('[API] Unhandled rejection:', reason);
-  process.exit(1);
 });
 
 async function main() {
