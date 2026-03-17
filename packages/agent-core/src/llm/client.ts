@@ -27,9 +27,9 @@ export class LLMClient {
   private google: GoogleGenerativeAI;
 
   constructor() {
-    this.anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    this.google = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY!);
+    this.anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY ?? 'placeholder' });
+    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY ?? 'placeholder' });
+    this.google = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY ?? 'placeholder');
   }
 
   async complete(

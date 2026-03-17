@@ -54,7 +54,7 @@ export class MemoryClient {
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
     );
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY ?? 'placeholder' });
   }
 
   // ── Write Path ──────────────────────────────────────────────
