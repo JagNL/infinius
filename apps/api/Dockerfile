@@ -105,6 +105,8 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 # Workspace files directory
 RUN mkdir -p /tmp/infinius-workspaces
 
-EXPOSE 3001
+# Railway injects PORT env var at runtime — we expose that port.
+# The CMD reads process.env.PORT so the server always listens on Railway's assigned port.
+EXPOSE 8080
 
 CMD ["node", "apps/api/dist/index.js"]
