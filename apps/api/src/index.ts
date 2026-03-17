@@ -86,12 +86,15 @@ async function main() {
     console.error('[API] Redis publisher connect error (non-fatal):', err),
   );
 
-  try {
-    const scheduler = new Scheduler();
-    scheduler.startWorker();
-  } catch (err) {
-    console.error('[API] Scheduler startWorker error (non-fatal):', err);
-  }
+  // Start scheduler worker — non-fatal if Redis is unavailable
+  setImmediate(() => {
+    try {
+      const scheduler = new Scheduler();
+      scheduler.startWorker();
+    } catch (err) {
+      console.error('[API] Scheduler startWorker error (non-fatal):', err);
+    }
+  });
 }
 
 main().catch((err) => {

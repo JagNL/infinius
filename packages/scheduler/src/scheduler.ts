@@ -53,7 +53,7 @@ export interface DelayedJobDefinition {
 const QUEUE_NAME = 'infinius-agent-jobs';
 
 export class Scheduler {
-  private queue: Queue;
+  private _queue: Queue | null = null;
   private worker: Worker | null = null;
   private connection: { url: string; maxRetriesPerRequest: null };
   private agentLoop = new AgentLoop();
@@ -63,7 +63,18 @@ export class Scheduler {
   constructor() {
     const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
     this.connection = { url: redisUrl, maxRetriesPerRequest: null };
-    this.queue = new Queue(QUEUE_NAME, { connection: this.connection });
+    // Queue is created lazily to avoid crashing the process when Redis is
+    // not yet available at startup (Railway Redis plugin may take a moment)
+  }
+
+  private get queue(): Queue {
+    if (!this._queue) {
+      this._queue = new Queue(QUEUE_NAME, { connection: this.connection });
+      this._queue.on('error', (err) => {
+        console.error('[Scheduler] Queue error (non-fatal):', err.message);
+      });
+    }
+    return this._queue;
   }
 
   // ── Cron Jobs ────────────────────────────────────────────────
@@ -119,6 +130,10 @@ export class Scheduler {
       },
       { connection: { ...this.connection }, concurrency: 5 },
     );
+
+    this.worker.on('error', (err) => {
+      console.error('[Scheduler] Worker error (non-fatal):', err.message);
+    });
 
     this.worker.on('failed', (job, err) => {
       console.error(`[Scheduler] Job ${job?.id} failed:`, err);
