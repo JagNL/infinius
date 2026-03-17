@@ -66,7 +66,24 @@ async function main() {
   const app = Fastify({ logger: { level: 'info' } });
 
   await app.register(cors, {
-    origin: process.env.NEXT_PUBLIC_APP_URL ?? '*',
+    origin: (origin, cb) => {
+      // Allow requests with no origin (server-to-server, curl, health checks)
+      if (!origin) return cb(null, true);
+      // Allow all Vercel deployments + explicit app URL
+      const allowed = [
+        process.env.NEXT_PUBLIC_APP_URL,
+        'https://infinius-web.vercel.app',
+      ].filter(Boolean);
+      if (
+        allowed.includes(origin) ||
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.railway.app') ||
+        origin === 'http://localhost:3000'
+      ) {
+        return cb(null, true);
+      }
+      return cb(new Error(`CORS: origin ${origin} not allowed`), false);
+    },
     credentials: true,
   });
 
