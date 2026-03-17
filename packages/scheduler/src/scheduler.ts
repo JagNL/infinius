@@ -19,7 +19,7 @@
  */
 
 import { Queue, Worker, type Job } from 'bullmq';
-import IORedis from 'ioredis';
+import { Redis } from 'ioredis';
 import { AgentLoop, ContextBuilder } from '@infinius/agent-core';
 import type { LLMMessage, ModelConfig } from '@infinius/agent-core';
 import { MemoryClient } from '@infinius/memory';
@@ -56,13 +56,13 @@ const QUEUE_NAME = 'infinius:agent-jobs';
 export class Scheduler {
   private queue: Queue;
   private worker: Worker | null = null;
-  private connection: IORedis;
+  private connection: Redis;
   private agentLoop = new AgentLoop();
   private contextBuilder = new ContextBuilder();
   private memoryClient = new MemoryClient();
 
   constructor() {
-    this.connection = new IORedis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
+    this.connection = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
       maxRetriesPerRequest: null,
     });
 
@@ -93,8 +93,8 @@ export class Scheduler {
   async listCrons(userId: string): Promise<CronJobDefinition[]> {
     const schedulers = await this.queue.getJobSchedulers();
     return schedulers
-      .filter((s) => (s.data as CronJobDefinition)?.userId === userId)
-      .map((s) => s.data as CronJobDefinition);
+      .filter((s) => (s as unknown as { data: CronJobDefinition }).data?.userId === userId)
+      .map((s) => (s as unknown as { data: CronJobDefinition }).data);
   }
 
   // ── Delayed (pause_and_wait) ─────────────────────────────────
