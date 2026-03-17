@@ -8,11 +8,8 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { glob } from 'node:fs';
-import { promisify } from 'node:util';
+import { glob as globAsync } from 'glob';
 import type { RegisteredTool, ToolResult, ToolExecuteOptions } from '@infinius/agent-core';
-
-const globAsync = promisify(glob);
 
 function resolveSafe(workspacePath: string, filePath: string): string {
   const resolved = path.resolve(workspacePath, filePath);

@@ -2,7 +2,11 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "paths": {
+      "@infinius/shared": ["../shared/src/index.ts"],
+      "@infinius/memory": ["../memory/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

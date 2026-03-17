@@ -78,12 +78,9 @@ export const askUserQuestionTool: RegisteredTool = {
 
   async execute(
     input: { title: string; questions: Question[] },
-    opts,
+    opts: import('@infinius/agent-core').ToolExecuteOptions,
   ) {
-    const { sessionId, sseEmit } = opts as {
-      sessionId: string;
-      sseEmit: (event: unknown) => void;
-    };
+    const { sessionId, sseEmit } = opts;
 
     const interruptId = `askq-${Date.now()}`;
 
@@ -124,7 +121,7 @@ async function waitForInterrupt(
       reject(new Error('ask_user_question timed out after 10 minutes'));
     }, INTERRUPT_TIMEOUT_MS);
 
-    redis.subscribe(channel, (message) => {
+    redis.subscribe(channel, (message: string) => {
       try {
         const parsed = JSON.parse(message) as {
           type: string;

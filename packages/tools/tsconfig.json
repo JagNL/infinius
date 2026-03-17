@@ -1,5 +1,14 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "outDir": "./dist", "rootDir": "./src" },
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "lib": ["ES2022", "DOM"],
+    "paths": {
+      "@infinius/agent-core": ["../agent-core/src/index.ts"],
+      "@infinius/memory": ["../memory/src/index.ts"],
+      "@infinius/shared": ["../shared/src/index.ts"]
+    }
+  },
   "include": ["src/**/*"]
 }

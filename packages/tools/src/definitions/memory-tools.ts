@@ -9,6 +9,7 @@
 
 import type { RegisteredTool, ToolResult, ToolExecuteOptions } from '@infinius/agent-core';
 import { MemoryClient } from '@infinius/memory';
+import type { MemoryEntry, MemoryCategory } from '@infinius/memory';
 
 const memoryClient = new MemoryClient();
 
@@ -36,7 +37,7 @@ export const memorySearchTool: RegisteredTool = {
 
     return {
       success: true,
-      output: { memories: results.map(m => ({ id: m.id, category: m.category, content: m.content, date: m.updatedAt })) },
+      output: { memories: results.map((m: MemoryEntry) => ({ id: m.id, category: m.category, content: m.content, date: m.updatedAt })) },
       userDescription: user_description,
     };
   },
@@ -71,7 +72,7 @@ export const memoryUpdateTool: RegisteredTool = {
   },
 };
 
-function inferCategory(content: string): import('@infinius/memory').MemoryCategory {
+function inferCategory(content: string): MemoryCategory {
   const lower = content.toLowerCase();
   if (lower.includes('prefer') || lower.includes('like') || lower.includes('dislike') || lower.includes('style')) return 'preferences';
   if (lower.includes('work') || lower.includes('role') || lower.includes('company') || lower.includes('team') || lower.includes('name')) return 'identity';

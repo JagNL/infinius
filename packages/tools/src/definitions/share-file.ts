@@ -39,7 +39,7 @@ export const shareFileTool: RegisteredTool = {
     required: ['file_path'],
   },
 
-  async execute(input: { file_path: string; name?: string }, opts) {
+  async execute(input: { file_path: string; name?: string }, opts: import('@infinius/agent-core').ToolExecuteOptions) {
     const { userId, sessionId } = opts;
 
     const supabase = createClient(

@@ -48,12 +48,9 @@ export const confirmActionTool: RegisteredTool = {
 
   async execute(
     input: { action: string; question: string; placeholder?: string },
-    opts,
+    opts: import('@infinius/agent-core').ToolExecuteOptions,
   ) {
-    const { sessionId, sseEmit } = opts as {
-      sessionId: string;
-      sseEmit: (event: unknown) => void;
-    };
+    const { sessionId, sseEmit } = opts;
 
     const interruptId = `confirm-${Date.now()}`;
 
@@ -97,7 +94,7 @@ async function waitForConfirm(
       reject(new Error('confirm_action timed out — treating as denied'));
     }, INTERRUPT_TIMEOUT_MS);
 
-    redis.subscribe(channel, (message) => {
+    redis.subscribe(channel, (message: string) => {
       try {
         const parsed = JSON.parse(message) as {
           type: string;

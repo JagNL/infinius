@@ -56,12 +56,9 @@ export const wideBrowseTool: RegisteredTool = {
       output_schema?: Record<string, unknown>;
       output_filename?: string;
     },
-    opts,
+    opts: import('@infinius/agent-core').ToolExecuteOptions,
   ) {
-    const { workspacePath, browserTask } = opts as {
-      workspacePath: string;
-      browserTask: (url: string, task: string) => Promise<string>;
-    };
+    const { workspacePath, browserTask } = opts;
 
     const CONCURRENCY = 3; // browser tasks are heavier, lower concurrency
     const results: Array<Record<string, string>> = [];

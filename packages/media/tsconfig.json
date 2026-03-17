@@ -2,7 +2,19 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "paths": {
+      "@infinius/agent-core": ["../agent-core/src/index.ts"],
+      "@infinius/memory": ["../memory/src/index.ts"],
+      "@infinius/tools": ["../tools/src/index.ts"],
+      "@infinius/orchestrator": ["../orchestrator/src/index.ts"],
+      "@infinius/scheduler": ["../scheduler/src/index.ts"],
+      "@infinius/connectors": ["../connectors/src/index.ts"],
+      "@infinius/skills": ["../skills/src/index.ts"],
+      "@infinius/documents": ["../documents/src/index.ts"],
+      "@infinius/media": ["../media/src/index.ts"],
+      "@infinius/shared": ["../shared/src/index.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

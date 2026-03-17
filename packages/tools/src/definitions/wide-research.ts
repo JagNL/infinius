@@ -60,12 +60,9 @@ export const wideResearchTool: RegisteredTool = {
       output_schema?: Record<string, unknown>;
       output_filename?: string;
     },
-    opts,
+    opts: import('@infinius/agent-core').ToolExecuteOptions,
   ) {
-    const { workspacePath, searchWeb } = opts as {
-      workspacePath: string;
-      searchWeb: (query: string) => Promise<Array<{ title: string; url: string; content: string }>>;
-    };
+    const { workspacePath, searchWeb } = opts;
 
     const CONCURRENCY = 5;
     const results: Array<Record<string, string>> = [];
