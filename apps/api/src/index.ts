@@ -71,8 +71,8 @@ connectInterruptPublisher().catch((err) =>
   console.error('[API] Redis publisher connect error (non-fatal):', err),
 );
 
-const scheduler = new Scheduler();
 try {
+  const scheduler = new Scheduler();
   scheduler.startWorker();
 } catch (err) {
   console.error('[API] Scheduler startWorker error (non-fatal):', err);
