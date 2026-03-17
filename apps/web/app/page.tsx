@@ -10,14 +10,10 @@ import { SessionSidebar } from '../components/layout/SessionSidebar';
 import type { Message, ToolActivity } from '../lib/types';
 
 async function getAuthToken(): Promise<string | null> {
-  // Try localStorage first (set by onAuthStateChange in lib/supabase.ts)
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('infinius:token');
-    if (stored) return stored;
-  }
-  // Fallback: read live session
+  // getSession() reads from the cookie storage — works with createBrowserClient
   const { data: { session } } = await supabase.auth.getSession();
-  return session?.access_token ?? null;
+  if (session?.access_token) return session.access_token;
+  return null;
 }
 
 export default function HomePage() {

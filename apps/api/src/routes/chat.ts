@@ -42,22 +42,21 @@ export async function chatRoutes(app: FastifyInstance) {
   app.post<{ Body: ChatBody }>('/chat', async (req: FastifyRequest<{ Body: ChatBody }>, reply: FastifyReply) => {
     const { message, sessionId, modelId } = req.body;
 
-    // Auth: get userId from Supabase session token
+    // Auth: get userId from Supabase session token (optional for now)
     const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return reply.code(401).send({ error: 'Unauthorized' });
+    let userId = 'anonymous';
+
+    if (authHeader?.startsWith('Bearer ')) {
+      try {
+        const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
+        const { data: { user } } = await supabase.auth.getUser(
+          authHeader.replace('Bearer ', ''),
+        );
+        if (user) userId = user.id;
+      } catch {
+        // non-fatal — continue as anonymous
+      }
     }
-
-    const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!);
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', ''),
-    );
-
-    if (authError || !user) {
-      return reply.code(401).send({ error: 'Invalid token' });
-    }
-
-    const userId = user.id;
     const activeSessionId = sessionId ?? `session-${Date.now()}`;
 
     // ── Set up workspace ─────────────────────────────────────
