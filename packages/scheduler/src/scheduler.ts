@@ -62,30 +62,16 @@ export class Scheduler {
 
   constructor() {
     const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
-    // ioredis (used by BullMQ) handles TLS more reliably with explicit
-    // host/port/password rather than a URL, especially for Upstash rediss://
-    const parsed = new URL(redisUrl);
     const isTLS = redisUrl.startsWith('rediss://');
-    // Upstash TLS port is 6380; standard Redis is 6379
-    const port = parsed.port
-      ? parseInt(parsed.port)
-      : isTLS ? 6380 : 6379;
-    const password = parsed.password ? decodeURIComponent(parsed.password) : undefined;
-    const username = parsed.username && parsed.username !== 'default'
-      ? decodeURIComponent(parsed.username)
-      : undefined;
+    // BullMQ/ioredis: pass the URL directly so ioredis handles TLS negotiation.
+    // Also pass natMap-style tls option when using rediss:// so ioredis enables
+    // TLS on the socket (required for Upstash — ECONNRESET otherwise).
     this.connection = {
-      host: parsed.hostname,
-      port,
-      ...(password ? { password } : {}),
-      ...(username ? { username } : {}),
+      url: redisUrl,
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
       ...(isTLS ? {
-        tls: {
-          rejectUnauthorized: false,
-          servername: parsed.hostname,
-        },
+        tls: true,
       } : {}),
     };
     // Queue is created lazily to avoid crashing the process when Redis is
