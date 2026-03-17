@@ -66,13 +66,27 @@ export class Scheduler {
     // host/port/password rather than a URL, especially for Upstash rediss://
     const parsed = new URL(redisUrl);
     const isTLS = redisUrl.startsWith('rediss://');
+    // Upstash TLS port is 6380; standard Redis is 6379
+    const port = parsed.port
+      ? parseInt(parsed.port)
+      : isTLS ? 6380 : 6379;
+    const password = parsed.password ? decodeURIComponent(parsed.password) : undefined;
+    const username = parsed.username && parsed.username !== 'default'
+      ? decodeURIComponent(parsed.username)
+      : undefined;
     this.connection = {
       host: parsed.hostname,
-      port: parseInt(parsed.port || (isTLS ? '6380' : '6379')),
-      password: parsed.password ? decodeURIComponent(parsed.password) : undefined,
-      username: parsed.username ? decodeURIComponent(parsed.username) : undefined,
+      port,
+      ...(password ? { password } : {}),
+      ...(username ? { username } : {}),
       maxRetriesPerRequest: null,
-      ...(isTLS ? { tls: { rejectUnauthorized: false } } : {}),
+      enableReadyCheck: false,
+      ...(isTLS ? {
+        tls: {
+          rejectUnauthorized: false,
+          servername: parsed.hostname,
+        },
+      } : {}),
     };
     // Queue is created lazily to avoid crashing the process when Redis is
     // not yet available at startup
