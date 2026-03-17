@@ -36,44 +36,61 @@ import { filesRoutes } from './routes/files.js';
 import { interruptRoutes, connectInterruptPublisher } from './routes/interrupt.js';
 import { Scheduler } from '@infinius/scheduler';
 
-const app = Fastify({ logger: { level: 'info' } });
-
-await app.register(cors, {
-  origin: process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000',
-  credentials: true,
+process.on('uncaughtException', (err) => {
+  console.error('[API] Uncaught exception:', err);
+  process.exit(1);
 });
 
-await app.register(cookie);
-await app.register(authPlugin);
+process.on('unhandledRejection', (reason) => {
+  console.error('[API] Unhandled rejection:', reason);
+  process.exit(1);
+});
 
-// Public health check — registered first so it's always available
-app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
+async function main() {
+  const app = Fastify({ logger: { level: 'info' } });
 
-// Protected API routes (all require Authorization: Bearer <supabase-jwt>)
-await app.register(chatRoutes, { prefix: '/api' });
-await app.register(sessionRoutes, { prefix: '/api' });
-await app.register(memoryRoutes, { prefix: '/api' });
-await app.register(connectorRoutes, { prefix: '/api' });
-await app.register(notificationRoutes, { prefix: '/api' });
-await app.register(cronRoutes, { prefix: '/api' });
-await app.register(filesRoutes, { prefix: '/api' });
+  await app.register(cors, {
+    origin: process.env.NEXT_PUBLIC_APP_URL ?? '*',
+    credentials: true,
+  });
 
-// Interrupt (semi-public — validates sessionId implicitly via Redis)
-await app.register(interruptRoutes, { prefix: '/api' });
+  await app.register(cookie);
+  await app.register(authPlugin);
 
-const port = parseInt(process.env.PORT ?? process.env.API_PORT ?? '3001');
-await app.listen({ port, host: '0.0.0.0' });
-console.log(`[API] Infinius API running on port ${port}`);
+  // Public health check — registered first so it's always available
+  app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
-// Connect Redis publisher + start scheduler AFTER server is listening
-// so healthcheck passes even if Redis takes a moment to be ready
-connectInterruptPublisher().catch((err) =>
-  console.error('[API] Redis publisher connect error (non-fatal):', err),
-);
+  // Protected API routes (all require Authorization: Bearer <supabase-jwt>)
+  await app.register(chatRoutes, { prefix: '/api' });
+  await app.register(sessionRoutes, { prefix: '/api' });
+  await app.register(memoryRoutes, { prefix: '/api' });
+  await app.register(connectorRoutes, { prefix: '/api' });
+  await app.register(notificationRoutes, { prefix: '/api' });
+  await app.register(cronRoutes, { prefix: '/api' });
+  await app.register(filesRoutes, { prefix: '/api' });
 
-try {
-  const scheduler = new Scheduler();
-  scheduler.startWorker();
-} catch (err) {
-  console.error('[API] Scheduler startWorker error (non-fatal):', err);
+  // Interrupt (semi-public — validates sessionId implicitly via Redis)
+  await app.register(interruptRoutes, { prefix: '/api' });
+
+  const port = parseInt(process.env.PORT ?? process.env.API_PORT ?? '3001');
+  await app.listen({ port, host: '0.0.0.0' });
+  console.log(`[API] Infinius API running on port ${port}`);
+
+  // Connect Redis publisher + start scheduler AFTER server is listening
+  // so healthcheck passes even if Redis takes a moment to be ready
+  connectInterruptPublisher().catch((err) =>
+    console.error('[API] Redis publisher connect error (non-fatal):', err),
+  );
+
+  try {
+    const scheduler = new Scheduler();
+    scheduler.startWorker();
+  } catch (err) {
+    console.error('[API] Scheduler startWorker error (non-fatal):', err);
+  }
 }
+
+main().catch((err) => {
+  console.error('[API] Fatal startup error:', err);
+  process.exit(1);
+});
