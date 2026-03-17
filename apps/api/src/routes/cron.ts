@@ -1,16 +1,21 @@
 import type { FastifyInstance } from 'fastify';
 import { Scheduler } from '@infinius/scheduler';
 
-const scheduler = new Scheduler();
+// Lazy — don't instantiate at module load (Queue constructor throws if REDIS_URL bad)
+let _scheduler: Scheduler | null = null;
+function getScheduler(): Scheduler {
+  if (!_scheduler) _scheduler = new Scheduler();
+  return _scheduler;
+}
 
 export async function cronRoutes(app: FastifyInstance) {
   app.get('/cron', async (req, reply) => {
     const userId = req.headers['x-user-id'] as string;
-    return scheduler.listCrons(userId);
+    return getScheduler().listCrons(userId);
   });
 
   app.delete<{ Params: { id: string } }>('/cron/:id', async (req, reply) => {
-    await scheduler.deleteCron(req.params.id);
+    await getScheduler().deleteCron(req.params.id);
     return { deleted: true };
   });
 }

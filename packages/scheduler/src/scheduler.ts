@@ -50,7 +50,7 @@ export interface DelayedJobDefinition {
   metadata?: Record<string, unknown>;
 }
 
-const QUEUE_NAME = 'infinius:agent-jobs';
+const QUEUE_NAME = 'infinius-agent-jobs';
 
 export class Scheduler {
   private queue: Queue;
@@ -166,7 +166,12 @@ export class Scheduler {
 
 // ── Tool definitions for the agent to call ───────────────────────────────────
 
-const scheduler = new Scheduler();
+// Lazy singleton — instantiated on first tool use, not at module load time
+let _scheduler: Scheduler | null = null;
+function getScheduler(): Scheduler {
+  if (!_scheduler) _scheduler = new Scheduler();
+  return _scheduler;
+}
 
 export const scheduleCronTool: RegisteredTool = {
   name: 'schedule_cron',
@@ -203,15 +208,15 @@ Minimum frequency is 1 hour. Cron expressions in UTC.`,
     switch (action) {
       case 'create': {
         const id = cron_id ?? `cron-${Date.now()}`;
-        await scheduler.createCron({ cronId: id, userId: opts.userId, name: name!, task: task!, cron: cron!, exact });
+        await getScheduler().createCron({ cronId: id, userId: opts.userId, name: name!, task: task!, cron: cron!, exact });
         return { success: true, output: { cronId: id, name, cron }, userDescription: user_description };
       }
       case 'delete': {
-        await scheduler.deleteCron(cron_id!);
+        await getScheduler().deleteCron(cron_id!);
         return { success: true, output: { deleted: cron_id }, userDescription: user_description };
       }
       case 'list': {
-        const jobs = await scheduler.listCrons(opts.userId);
+        const jobs = await getScheduler().listCrons(opts.userId);
         return { success: true, output: { jobs }, userDescription: user_description };
       }
       default:
@@ -248,7 +253,7 @@ NOT for recurring tasks — use schedule_cron instead.`,
     const delayMs = wait_minutes * 60 * 1000;
     const jobId = `pause-${opts.sessionId}-${Date.now()}`;
 
-    await scheduler.scheduleDelayed({
+    await getScheduler().scheduleDelayed({
       jobId,
       userId: opts.userId,
       sessionId: opts.sessionId,
