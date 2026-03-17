@@ -55,14 +55,19 @@ const QUEUE_NAME = 'infinius-agent-jobs';
 export class Scheduler {
   private _queue: Queue | null = null;
   private worker: Worker | null = null;
-  private connection: { url: string; maxRetriesPerRequest: null };
+  private connection: { url: string; maxRetriesPerRequest: null; tls?: object };
   private agentLoop = new AgentLoop();
   private contextBuilder = new ContextBuilder();
   private memoryClient = new MemoryClient();
 
   constructor() {
     const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
-    this.connection = { url: redisUrl, maxRetriesPerRequest: null };
+    this.connection = {
+      url: redisUrl,
+      maxRetriesPerRequest: null,
+      // ioredis requires tls option for rediss:// (Upstash TLS)
+      ...(redisUrl.startsWith('rediss://') ? { tls: {} } : {}),
+    };
     // Queue is created lazily to avoid crashing the process when Redis is
     // not yet available at startup (Railway Redis plugin may take a moment)
   }

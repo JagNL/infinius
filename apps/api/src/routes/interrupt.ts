@@ -22,8 +22,14 @@ interface InterruptBody {
   answers?: Record<number, string | string[]>;
 }
 
+const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
 const redisPublisher = createClient({
-  url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+  url: redisUrl,
+  socket: {
+    // Upstash (and any rediss:// URL) requires TLS
+    tls: redisUrl.startsWith('rediss://'),
+    reconnectStrategy: (retries) => Math.min(retries * 500, 10000),
+  },
 });
 
 // Connect once at startup (called from index.ts)

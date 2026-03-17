@@ -37,9 +37,21 @@ import { interruptRoutes, connectInterruptPublisher } from './routes/interrupt.j
 import { Scheduler } from '@infinius/scheduler';
 
 process.on('uncaughtException', (err) => {
+  const msg = err.message ?? '';
+  const code = (err as NodeJS.ErrnoException).code ?? '';
+  // Non-fatal Redis errors — BullMQ/ioredis will reconnect automatically
+  if (
+    code === 'ECONNREFUSED' ||
+    msg.includes('ECONNREFUSED') ||
+    msg.includes('Socket closed unexpectedly') ||
+    msg.includes('SocketClosedUnexpectedlyError') ||
+    msg.includes('Connection is closed') ||
+    msg.includes('Stream isn\'t writeable')
+  ) {
+    console.error('[API] Redis connection error (non-fatal, will retry):', msg);
+    return;
+  }
   console.error('[API] Uncaught exception:', err);
-  // Don't exit on Redis connection errors — Railway Redis may not be ready yet
-  if ((err as NodeJS.ErrnoException).code === 'ECONNREFUSED') return;
   process.exit(1);
 });
 
