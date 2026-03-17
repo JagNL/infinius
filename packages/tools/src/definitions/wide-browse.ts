@@ -50,15 +50,12 @@ export const wideBrowseTool: RegisteredTool = {
   },
 
   async execute(
-    input: {
-      entities: string[];
-      prompt_template: string;
-      output_schema?: Record<string, unknown>;
-      output_filename?: string;
-    },
+    rawInput: Record<string, unknown>,
     opts: import('@infinius/agent-core').ToolExecuteOptions,
   ) {
-    const { workspacePath, browserTask } = opts;
+    const input = rawInput as { entities: string[]; prompt_template: string; output_schema?: Record<string, unknown>; output_filename?: string };
+    const { workspacePath } = opts;
+    const browserTask = opts.browserTask;
 
     const CONCURRENCY = 3; // browser tasks are heavier, lower concurrency
     const results: Array<Record<string, string>> = [];
@@ -73,6 +70,7 @@ export const wideBrowseTool: RegisteredTool = {
             ? entity
             : `https://${entity}`;
 
+          if (!browserTask) throw new Error('browserTask not available');
           const raw = await browserTask(url, task);
           return { entity, result: raw };
         }),

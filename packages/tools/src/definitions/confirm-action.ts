@@ -47,15 +47,16 @@ export const confirmActionTool: RegisteredTool = {
   },
 
   async execute(
-    input: { action: string; question: string; placeholder?: string },
+    rawInput: Record<string, unknown>,
     opts: import('@infinius/agent-core').ToolExecuteOptions,
   ) {
+    const input = rawInput as { action: string; question: string; placeholder?: string };
     const { sessionId, sseEmit } = opts;
 
     const interruptId = `confirm-${Date.now()}`;
 
     // Emit SSE event to frontend
-    sseEmit({
+    sseEmit?.({
       type: 'confirm_action',
       id: interruptId,
       action: input.action,

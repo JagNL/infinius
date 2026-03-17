@@ -3,12 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "lib": ["ES2022", "DOM"],
-    "paths": {
-      "@infinius/agent-core": ["../agent-core/src/index.ts"],
-      "@infinius/memory": ["../memory/src/index.ts"],
-      "@infinius/shared": ["../shared/src/index.ts"]
-    }
+    "lib": ["ES2022", "DOM"]
   },
   "include": ["src/**/*"]
 }

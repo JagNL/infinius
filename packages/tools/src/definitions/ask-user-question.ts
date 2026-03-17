@@ -77,15 +77,16 @@ export const askUserQuestionTool: RegisteredTool = {
   },
 
   async execute(
-    input: { title: string; questions: Question[] },
+    rawInput: Record<string, unknown>,
     opts: import('@infinius/agent-core').ToolExecuteOptions,
   ) {
+    const input = rawInput as { title: string; questions: Question[] };
     const { sessionId, sseEmit } = opts;
 
     const interruptId = `askq-${Date.now()}`;
 
     // Emit the interrupt event to the frontend
-    sseEmit({
+    sseEmit?.({
       type: 'ask_user_question',
       id: interruptId,
       title: input.title,

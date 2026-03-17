@@ -39,7 +39,8 @@ export const shareFileTool: RegisteredTool = {
     required: ['file_path'],
   },
 
-  async execute(input: { file_path: string; name?: string }, opts: import('@infinius/agent-core').ToolExecuteOptions) {
+  async execute(rawInput: Record<string, unknown>, opts: import('@infinius/agent-core').ToolExecuteOptions) {
+    const input = rawInput as { file_path: string; name?: string };
     const { userId, sessionId } = opts;
 
     const supabase = createClient(

@@ -54,15 +54,12 @@ export const wideResearchTool: RegisteredTool = {
   },
 
   async execute(
-    input: {
-      entities: string[];
-      prompt_template: string;
-      output_schema?: Record<string, unknown>;
-      output_filename?: string;
-    },
+    rawInput: Record<string, unknown>,
     opts: import('@infinius/agent-core').ToolExecuteOptions,
   ) {
-    const { workspacePath, searchWeb } = opts;
+    const input = rawInput as { entities: string[]; prompt_template: string; output_schema?: Record<string, unknown>; output_filename?: string };
+    const { workspacePath } = opts;
+    const searchWeb = opts.searchWeb;
 
     const CONCURRENCY = 5;
     const results: Array<Record<string, string>> = [];
@@ -73,6 +70,7 @@ export const wideResearchTool: RegisteredTool = {
       const batchResults = await Promise.allSettled(
         batch.map(async (entity) => {
           const query = input.prompt_template.replace('{entity}', entity);
+          if (!searchWeb) throw new Error('searchWeb not available');
           const searchResults = await searchWeb(query);
 
           // Synthesise into a flat record using top 3 results
