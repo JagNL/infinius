@@ -24,14 +24,14 @@ COPY packages/documents/package.json ./packages/documents/
 COPY packages/media/package.json ./packages/media/
 COPY apps/api/package.json ./apps/api/
 
-# Install all deps
+# Install all deps (including devDeps for build)
 RUN pnpm install --no-frozen-lockfile
 
 # Copy source
 COPY packages/ ./packages/
 COPY apps/api/ ./apps/api/
 
-# Build all packages + API
+# Build all packages + API in dependency order
 RUN pnpm --filter @infinius/shared build
 RUN pnpm --filter @infinius/memory build
 RUN pnpm --filter @infinius/agent-core build
@@ -47,7 +47,7 @@ RUN pnpm --filter @infinius/api build
 # ── Runtime stage ─────────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
 
-# Install Chromium for PDF generation
+# Install Chromium for browser automation + PDF generation
 RUN apk add --no-cache \
   chromium \
   nss \
@@ -64,16 +64,43 @@ RUN corepack enable && corepack prepare pnpm@9.4.0 --activate
 
 WORKDIR /app
 
-# Copy workspace manifests (needed for pnpm symlink resolution at runtime)
+# Copy workspace manifests so pnpm install knows the workspace shape
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/pnpm-lock.yaml* ./
 COPY --from=builder /app/turbo.json ./
+COPY --from=builder /app/tsconfig.base.json ./
 
-# Copy built artifacts
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
+# Copy all package.json files (needed for workspace install)
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/
+COPY --from=builder /app/packages/agent-core/package.json ./packages/agent-core/
+COPY --from=builder /app/packages/memory/package.json ./packages/memory/
+COPY --from=builder /app/packages/tools/package.json ./packages/tools/
+COPY --from=builder /app/packages/orchestrator/package.json ./packages/orchestrator/
+COPY --from=builder /app/packages/scheduler/package.json ./packages/scheduler/
+COPY --from=builder /app/packages/connectors/package.json ./packages/connectors/
+COPY --from=builder /app/packages/skills/package.json ./packages/skills/
+COPY --from=builder /app/packages/documents/package.json ./packages/documents/
+COPY --from=builder /app/packages/media/package.json ./packages/media/
 COPY --from=builder /app/apps/api/package.json ./apps/api/
+
+# Install production deps only (resolves symlinks correctly in this stage)
+RUN pnpm install --prod --no-frozen-lockfile
+
+# Copy compiled package dist folders
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/agent-core/dist ./packages/agent-core/dist
+COPY --from=builder /app/packages/memory/dist ./packages/memory/dist
+COPY --from=builder /app/packages/tools/dist ./packages/tools/dist
+COPY --from=builder /app/packages/orchestrator/dist ./packages/orchestrator/dist
+COPY --from=builder /app/packages/scheduler/dist ./packages/scheduler/dist
+COPY --from=builder /app/packages/connectors/dist ./packages/connectors/dist
+COPY --from=builder /app/packages/skills/dist ./packages/skills/dist
+COPY --from=builder /app/packages/documents/dist ./packages/documents/dist
+COPY --from=builder /app/packages/media/dist ./packages/media/dist
+
+# Copy compiled API
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
 # Workspace files directory
 RUN mkdir -p /tmp/infinius-workspaces
