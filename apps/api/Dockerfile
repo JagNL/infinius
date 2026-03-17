@@ -64,6 +64,11 @@ RUN corepack enable && corepack prepare pnpm@9.4.0 --activate
 
 WORKDIR /app
 
+# Copy workspace manifests (needed for pnpm symlink resolution at runtime)
+COPY --from=builder /app/package.json ./
+COPY --from=builder /app/pnpm-workspace.yaml ./
+COPY --from=builder /app/turbo.json ./
+
 # Copy built artifacts
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/packages ./packages
