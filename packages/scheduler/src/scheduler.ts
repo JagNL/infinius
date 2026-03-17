@@ -19,7 +19,6 @@
  */
 
 import { Queue, Worker, type Job } from 'bullmq';
-import { Redis } from 'ioredis';
 import { AgentLoop, ContextBuilder } from '@infinius/agent-core';
 import type { LLMMessage, ModelConfig } from '@infinius/agent-core';
 import { MemoryClient } from '@infinius/memory';
@@ -56,16 +55,14 @@ const QUEUE_NAME = 'infinius:agent-jobs';
 export class Scheduler {
   private queue: Queue;
   private worker: Worker | null = null;
-  private connection: Redis;
+  private connection: { url: string; maxRetriesPerRequest: null };
   private agentLoop = new AgentLoop();
   private contextBuilder = new ContextBuilder();
   private memoryClient = new MemoryClient();
 
   constructor() {
-    this.connection = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
-      maxRetriesPerRequest: null,
-    });
-
+    const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
+    this.connection = { url: redisUrl, maxRetriesPerRequest: null };
     this.queue = new Queue(QUEUE_NAME, { connection: this.connection });
   }
 
@@ -120,7 +117,7 @@ export class Scheduler {
       async (job: Job) => {
         await this.processJob(job);
       },
-      { connection: this.connection, concurrency: 5 },
+      { connection: { ...this.connection }, concurrency: 5 },
     );
 
     this.worker.on('failed', (job, err) => {
@@ -163,7 +160,7 @@ export class Scheduler {
   async stop(): Promise<void> {
     await this.worker?.close();
     await this.queue.close();
-    await this.connection.quit();
+    // connection is a plain options object, nothing to quit
   }
 }
 
