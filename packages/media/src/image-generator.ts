@@ -105,8 +105,9 @@ async function generateDalle(spec: ImageSpec, workspacePath: string): Promise<st
   });
 
   const paths: string[] = [];
-  for (let i = 0; i < (response.data?.length ?? 0); i++) {
-    const url = response.data[i].url!;
+  const responseData = response.data ?? [];
+  for (let i = 0; i < responseData.length; i++) {
+    const url = responseData[i].url!;
     const filename = `${spec.filename ?? 'image'}_${i + 1}.png`;
     const filepath = path.join(workspacePath, filename);
     await downloadToFile(url, filepath);
