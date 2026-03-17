@@ -10,7 +10,23 @@
  * This is the "pre-flight" step Computer runs before calling the LLM.
  */
 
-import type { MemoryClient } from '@infinius/memory';
+// Local interface mirrors MemoryClient from @infinius/memory to avoid a
+// build-order dependency (memory must be built before agent-core otherwise).
+interface MemoryEntry {
+  id: string;
+  content: string;
+  category: string;
+  createdAt: string;
+}
+
+interface IMemoryClient {
+  getUserFacts(userId: string): Promise<MemoryEntry[]>;
+  semanticSearch(
+    userId: string,
+    query: string,
+    opts?: { limit?: number },
+  ): Promise<MemoryEntry[]>;
+}
 
 export interface ContextBuilderOptions {
   userId: string;
@@ -19,7 +35,7 @@ export interface ContextBuilderOptions {
   userMessage: string;
   /** Skill playbooks to inject (loaded markdown files) */
   loadedSkills?: string[];
-  memoryClient: MemoryClient;
+  memoryClient: IMemoryClient;
 }
 
 const BASE_SYSTEM_PROMPT = `
@@ -66,12 +82,12 @@ export class ContextBuilder {
     ]);
 
     if (userFacts.length > 0) {
-      const factsText = userFacts.map(f => `- ${f.content}`).join('\n');
+      const factsText = userFacts.map((f: MemoryEntry) => `- ${f.content}`).join('\n');
       parts.push(`\n<user_background>\nFacts about this user:\n${factsText}\n</user_background>`);
     }
 
     if (relevantHistory.length > 0) {
-      const historyText = relevantHistory.map(m => `- ${m.content} (${m.createdAt})`).join('\n');
+      const historyText = relevantHistory.map((m: MemoryEntry) => `- ${m.content} (${m.createdAt})`).join('\n');
       parts.push(`\n<relevant_memory>\nRelevant past context:\n${historyText}\n</relevant_memory>`);
     }
 

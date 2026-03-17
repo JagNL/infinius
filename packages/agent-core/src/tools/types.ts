@@ -61,12 +61,15 @@ export interface RegisteredTool extends ToolDefinition {
   execute: ToolExecuteFn;
 }
 
-// Minimal JSON Schema subset used for tool inputs
+// Minimal JSON Schema subset used for tool inputs.
+// The index signature ([key: string]: unknown) is required so this is
+// compatible with OpenAI's FunctionParameters type.
 export interface JSONSchema {
   type: 'object';
   properties: Record<string, JSONSchemaProperty>;
   required?: string[];
   additionalProperties?: boolean;
+  [key: string]: unknown;
 }
 
 export type JSONSchemaProperty =

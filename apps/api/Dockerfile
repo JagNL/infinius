@@ -33,8 +33,8 @@ COPY apps/api/ ./apps/api/
 
 # Build all packages + API
 RUN pnpm --filter @infinius/shared build
-RUN pnpm --filter @infinius/agent-core build
 RUN pnpm --filter @infinius/memory build
+RUN pnpm --filter @infinius/agent-core build
 RUN pnpm --filter @infinius/tools build
 RUN pnpm --filter @infinius/orchestrator build
 RUN pnpm --filter @infinius/scheduler build
