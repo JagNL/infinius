@@ -19,6 +19,7 @@
  */
 
 import { Queue, Worker, type Job } from 'bullmq';
+import IORedis from 'ioredis';
 import { AgentLoop, ContextBuilder } from '@infinius/agent-core';
 import type { LLMMessage, ModelConfig } from '@infinius/agent-core';
 import { MemoryClient } from '@infinius/memory';
@@ -55,7 +56,7 @@ const QUEUE_NAME = 'infinius-agent-jobs';
 export class Scheduler {
   private _queue: Queue | null = null;
   private worker: Worker | null = null;
-  private connection: Record<string, unknown>;
+  private redis: IORedis;
   private agentLoop = new AgentLoop();
   private contextBuilder = new ContextBuilder();
   private memoryClient = new MemoryClient();
@@ -63,24 +64,22 @@ export class Scheduler {
   constructor() {
     const redisUrl = process.env.REDIS_URL ?? 'redis://localhost:6379';
     const isTLS = redisUrl.startsWith('rediss://');
-    // BullMQ/ioredis: pass the URL directly so ioredis handles TLS negotiation.
-    // Also pass natMap-style tls option when using rediss:// so ioredis enables
-    // TLS on the socket (required for Upstash — ECONNRESET otherwise).
-    this.connection = {
-      url: redisUrl,
+    // Use explicit IORedis instance so TLS is handled correctly for Upstash.
+    // Passing connection options to BullMQ directly does not reliably enable
+    // TLS — an IORedis instance with tls option does.
+    this.redis = new IORedis(redisUrl, {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
-      ...(isTLS ? {
-        tls: true,
-      } : {}),
-    };
-    // Queue is created lazily to avoid crashing the process when Redis is
-    // not yet available at startup
+      ...(isTLS ? { tls: { rejectUnauthorized: false } } : {}),
+    });
+    this.redis.on('error', (err: Error) => {
+      console.error('[Scheduler] Redis error (non-fatal):', err.message);
+    });
   }
 
   private get queue(): Queue {
     if (!this._queue) {
-      this._queue = new Queue(QUEUE_NAME, { connection: this.connection });
+      this._queue = new Queue(QUEUE_NAME, { connection: this.redis });
       this._queue.on('error', (err) => {
         console.error('[Scheduler] Queue error (non-fatal):', err.message);
       });
@@ -139,7 +138,7 @@ export class Scheduler {
       async (job: Job) => {
         await this.processJob(job);
       },
-      { connection: { ...this.connection }, concurrency: 5 },
+      { connection: this.redis, concurrency: 5 },
     );
 
     this.worker.on('error', (err) => {

@@ -1,12 +1,20 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import { MessageList } from '../components/chat/MessageList';
 import { ChatInput } from '../components/chat/ChatInput';
 import { ActivityTimeline } from '../components/tools/ActivityTimeline';
 import { MemoryPanel } from '../components/memory/MemoryPanel';
 import { SessionSidebar } from '../components/layout/SessionSidebar';
 import type { Message, ToolActivity } from '../lib/types';
+
+function getSupabase() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
+}
 
 export default function HomePage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -31,9 +39,16 @@ export default function HomePage() {
     abortRef.current = new AbortController();
 
     try {
+      // Get the current session token to authenticate with the API
+      const { data: { session } } = await getSupabase().auth.getSession();
+      const token = session?.access_token;
+
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ message: content, sessionId }),
         signal: abortRef.current.signal,
       });
