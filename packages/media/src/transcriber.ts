@@ -42,8 +42,7 @@ export class Transcriber {
     });
 
     const text = response.text;
-    // @ts-expect-error verbose_json includes duration
-    const duration = response.duration as number | undefined;
+    const duration = (response as unknown as { duration?: number }).duration;
 
     let savedFilePath: string | undefined;
     if (spec.saveTranscript !== false) {
