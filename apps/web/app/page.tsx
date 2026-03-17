@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '../lib/supabase';
 import { MessageList } from '../components/chat/MessageList';
 import { ChatInput } from '../components/chat/ChatInput';
 import { ActivityTimeline } from '../components/tools/ActivityTimeline';
@@ -9,11 +9,15 @@ import { MemoryPanel } from '../components/memory/MemoryPanel';
 import { SessionSidebar } from '../components/layout/SessionSidebar';
 import type { Message, ToolActivity } from '../lib/types';
 
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+async function getAuthToken(): Promise<string | null> {
+  // Try localStorage first (set by onAuthStateChange in lib/supabase.ts)
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('infinius:token');
+    if (stored) return stored;
+  }
+  // Fallback: read live session
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
 }
 
 export default function HomePage() {
@@ -39,9 +43,7 @@ export default function HomePage() {
     abortRef.current = new AbortController();
 
     try {
-      // Get the current session token to authenticate with the API
-      const { data: { session } } = await getSupabase().auth.getSession();
-      const token = session?.access_token;
+      const token = await getAuthToken();
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
         method: 'POST',
