@@ -1,6 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": ["**/.env.*"],
+  "globalDependencies": ["**/.env.*", "**/postcss.config.*", "**/tailwind.config.*"],
+  "globalPassThroughEnv": ["COREPACK_HOME"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
