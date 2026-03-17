@@ -51,14 +51,14 @@ function sectionToParagraph(section: DocxSection): Paragraph {
     underline: section.underline ? { type: UnderlineType.SINGLE } : undefined,
   });
 
-  const alignMap: Record<string, AlignmentType> = {
+  const alignMap: Record<string, typeof AlignmentType[keyof typeof AlignmentType]> = {
     left: AlignmentType.LEFT,
     center: AlignmentType.CENTER,
     right: AlignmentType.RIGHT,
     justify: AlignmentType.JUSTIFIED,
   };
 
-  const headingMap: Record<string, HeadingLevel> = {
+  const headingMap: Record<string, typeof HeadingLevel[keyof typeof HeadingLevel]> = {
     heading1: HeadingLevel.HEADING_1,
     heading2: HeadingLevel.HEADING_2,
     heading3: HeadingLevel.HEADING_3,
