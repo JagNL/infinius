@@ -46,10 +46,7 @@ await app.register(cors, {
 await app.register(cookie);
 await app.register(authPlugin);
 
-// Connect the Redis publisher used by interrupt route
-await connectInterruptPublisher();
-
-// Public
+// Public health check — registered first so it's always available
 app.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 
 // Protected API routes (all require Authorization: Bearer <supabase-jwt>)
@@ -64,10 +61,19 @@ await app.register(filesRoutes, { prefix: '/api' });
 // Interrupt (semi-public — validates sessionId implicitly via Redis)
 await app.register(interruptRoutes, { prefix: '/api' });
 
-// Start BullMQ scheduler worker
-const scheduler = new Scheduler();
-scheduler.startWorker();
-
-const port = parseInt(process.env.API_PORT ?? '3001');
+const port = parseInt(process.env.PORT ?? process.env.API_PORT ?? '3001');
 await app.listen({ port, host: '0.0.0.0' });
 console.log(`[API] Infinius API running on port ${port}`);
+
+// Connect Redis publisher + start scheduler AFTER server is listening
+// so healthcheck passes even if Redis takes a moment to be ready
+connectInterruptPublisher().catch((err) =>
+  console.error('[API] Redis publisher connect error (non-fatal):', err),
+);
+
+const scheduler = new Scheduler();
+try {
+  scheduler.startWorker();
+} catch (err) {
+  console.error('[API] Scheduler startWorker error (non-fatal):', err);
+}
