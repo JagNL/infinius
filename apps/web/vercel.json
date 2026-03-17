@@ -2,5 +2,8 @@
   "framework": "nextjs",
   "buildCommand": "cd ../.. && pnpm --filter @infinius/shared build && pnpm --filter @infinius/web build",
   "outputDirectory": ".next",
-  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile"
+  "installCommand": "cd ../.. && pnpm install --no-frozen-lockfile",
+  "env": {
+    "ENABLE_EXPERIMENTAL_COREPACK": "1"
+  }
 }
